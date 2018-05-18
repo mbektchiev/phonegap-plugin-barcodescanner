@@ -10,6 +10,20 @@
 #import <AssetsLibrary/AssetsLibrary.h>
 #import <Cordova/CDVPlugin.h>
 
+AVCaptureVideoOrientation interfaceOrientationToVideoOrientation(const UIInterfaceOrientation interfaceOrientation) {
+    switch(interfaceOrientation) {
+        case UIInterfaceOrientationPortrait:
+            return AVCaptureVideoOrientationPortrait;
+        case UIInterfaceOrientationPortraitUpsideDown:
+            return AVCaptureVideoOrientationPortraitUpsideDown;
+        case UIInterfaceOrientationLandscapeLeft:
+            return AVCaptureVideoOrientationLandscapeRight;
+        case UIInterfaceOrientationLandscapeRight:
+            return AVCaptureVideoOrientationLandscapeLeft;
+        default:
+            return (AVCaptureVideoOrientation) interfaceOrientation;
+    }
+}
 
 //------------------------------------------------------------------------------
 // Delegate to handle orientation functions
@@ -758,7 +772,7 @@ parentViewController:(UIViewController*)parentViewController
 - (void)viewWillAppear:(BOOL)animated {
 
     // set video orientation to what the camera sees
-    self.processor.previewLayer.connection.videoOrientation = (AVCaptureVideoOrientation) [[UIApplication sharedApplication] statusBarOrientation];
+    self.processor.previewLayer.connection.videoOrientation = interfaceOrientationToVideoOrientation([[UIApplication sharedApplication] statusBarOrientation]);
 
     // this fixes the bug when the statusbar is landscape, and the preview layer
     // starts up in portrait (not filling the whole view)
@@ -773,7 +787,7 @@ parentViewController:(UIViewController*)parentViewController
     previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
 
     if ([previewLayer.connection isVideoOrientationSupported]) {
-        [previewLayer.connection setVideoOrientation:[[UIApplication sharedApplication] statusBarOrientation]];
+        [previewLayer.connection setVideoOrientation:interfaceOrientationToVideoOrientation([[UIApplication sharedApplication] statusBarOrientation])];
     }
 
     [self.view.layer insertSublayer:previewLayer below:[[self.view.layer sublayers] objectAtIndex:0]];
@@ -1006,16 +1020,7 @@ parentViewController:(UIViewController*)parentViewController
     AVCaptureVideoPreviewLayer* previewLayer = self.processor.previewLayer;
     previewLayer.frame = self.view.bounds;
 
-    if (orientation == UIInterfaceOrientationLandscapeLeft) {
-        [previewLayer setOrientation:AVCaptureVideoOrientationLandscapeLeft];
-    } else if (orientation == UIInterfaceOrientationLandscapeRight) {
-        [previewLayer setOrientation:AVCaptureVideoOrientationLandscapeRight];
-    } else if (orientation == UIInterfaceOrientationPortrait) {
-        [previewLayer setOrientation:AVCaptureVideoOrientationPortrait];
-    } else if (orientation == UIInterfaceOrientationPortraitUpsideDown) {
-        [previewLayer setOrientation:AVCaptureVideoOrientationPortraitUpsideDown];
-    }
-
+    [previewLayer setOrientation:interfaceOrientationToVideoOrientation(orientation)];
     previewLayer.videoGravity = AVLayerVideoGravityResizeAspectFill;
 
     [self resizeElements];
